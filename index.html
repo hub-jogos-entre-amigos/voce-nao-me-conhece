@@ -1,0 +1,2733 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Você Não Me Conhece</title>
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#0f0d14">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<style>
+:root{
+  --bg:#0f0d14;
+  --card:#2a2438;
+  --primary:#9b7cff;
+  --secondary:#6c5ce7;
+  --danger:#dc3545;
+  --gray:#3a3550;
+  --stroke:#403a5c;
+  --text:#ffffff;
+  --muted:#cfc9ff;
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:Segoe UI,Roboto,Arial,sans-serif;
+  display:flex;
+  justify-content:center;
+  overflow:hidden;
+}
+
+#app{
+  width:100%;
+  max-width:460px;
+  height:100vh;
+  height:100dvh;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  padding:16px 16px calc(16px + env(safe-area-inset-bottom));
+  position:relative;
+}
+
+/* SCREENS */
+.screen{display:none;flex-direction:column;height:100%;overflow:hidden}
+.screen.active{display:flex}
+
+/* BUTTONS */
+button{
+  width:100%;
+  padding:16px;
+  border:none;
+  border-radius:14px;
+  font-weight:900;
+  letter-spacing:.8px;
+  margin:6px 0;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+button:active{transform:scale(.99)}
+.btn-primary{background:var(--primary);color:#120f18}
+.btn-outline{background:transparent;border:2px solid var(--primary);color:var(--primary)}
+.btn-gray{background:var(--gray);color:#fff}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-secondary{background:var(--secondary);color:#fff}
+
+/* INPUT */
+#in-name{
+  width:100%;
+  padding:14px;
+  border-radius:10px;
+  border:none;
+  text-align:center;
+  background:#1c1826;
+  color:#fff;
+  outline:none;
+}
+
+/* SETUP LIST */
+.scroll-y{overflow-y:auto;width:100%;-webkit-overflow-scrolling:touch}
+
+/* Player row (igual ao padrão do Nem Pensar: X pequeno à direita) */
+.player{
+  background:var(--card);
+  border:1px solid var(--stroke);
+  border-radius:12px;
+  padding:12px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  margin-bottom:6px;
+}
+.player span{font-weight:900;letter-spacing:.6px}
+.player button{
+  width:auto;
+  padding:6px 10px;
+  font-size:12px;
+  margin:0;
+  border-radius:10px;
+}
+
+/* LOBBY */
+.lobby-box{
+  background:var(--card);
+  border:1px solid var(--stroke);
+  border-radius:18px;
+  padding:16px;
+  text-align:center;
+  margin-top:12px;
+}
+.lobby-score{
+  color:var(--primary);
+  font-size:42px;
+  font-weight:1000;
+  line-height:1;
+}
+
+/* MODAL */
+.modal{
+  position:absolute;
+  inset:0;
+  background:rgba(0,0,0,.85);
+  display:none;
+  justify-content:center;
+  align-items:center;
+  z-index:1000;
+  padding:18px;
+}
+.modal-box{
+  background:var(--card);
+  border:1px solid var(--stroke);
+  border-radius:18px;
+  padding:18px;
+  width:100%;
+  max-width:420px;
+  box-shadow:0 18px 36px rgba(0,0,0,.55);
+}
+.modal-title{
+  color:var(--primary);
+  font-weight:1000;
+  text-align:center;
+  margin:0 0 10px 0;
+  letter-spacing:1px;
+}
+.modal-text{
+  text-align:center;
+  margin:0 0 14px 0;
+  color:#e8e4ff;
+  line-height:1.35;
+  font-weight:800;
+}
+.modal-actions{display:flex;gap:10px}
+.modal-actions button{margin:0}
+
+/* SCORE LIST */
+.score-item{
+  background:#1d1a2a;
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:12px;
+  padding:10px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:8px;
+}
+.score-left{display:flex;align-items:center;gap:10px;min-width:0}
+.rank-badge{
+  width:26px;height:26px;
+  border-radius:50%;
+  background:rgba(155,124,255,.2);
+  border:1px solid rgba(155,124,255,.5);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  font-weight:900;
+  color:var(--primary);
+  flex:0 0 auto;
+}
+.score-name{
+  font-weight:1000;
+  letter-spacing:.6px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.score-right{display:flex;align-items:center;gap:10px}
+.score-pts{color:var(--primary);font-weight:1000;white-space:nowrap}
+
+/* botões + e - pequenos */
+.score-btn{
+  width:auto !important;
+  padding:8px 12px !important;
+  font-size:14px !important;
+  border-radius:12px !important;
+  margin:0 !important;
+}
+.score-btn-minus{ background:rgba(220,53,69,.18); border:1px solid rgba(220,53,69,.55); color:#fff; }
+.score-btn-plus { background:rgba(40,167,69,.18);  border:1px solid rgba(40,167,69,.55);  color:#fff; }
+
+/* STORY CARD (carta da frase) */
+.vnmc-card{
+  background:var(--card);
+  border:1px solid var(--stroke);
+  border-radius:22px;
+  padding:16px;
+  box-shadow:0 10px 18px rgba(0,0,0,.35);
+}
+.vnmc-title{
+  width:100%;
+  text-align:center;
+  text-transform:uppercase;
+  letter-spacing:2px;
+  padding:14px;
+  margin:0 0 12px 0;
+  background:var(--primary);
+  color:#120f18;
+  border-radius:16px;
+  font-weight:1000;
+  font-size:24px;
+}
+.vnmc-text{
+  font-size:18px; /* ajuste aqui se quiser menor/maior sem mexer no resto */
+  font-weight:900;
+  line-height:1.35;
+  text-align:center;
+  color:#fff;
+  margin:0 0 12px 0;
+}
+.vnmc-sub{
+  text-align:center;
+  color:#e8e4ff;
+  font-weight:800;
+  margin:0 0 12px 0;
+  line-height:1.35;
+}
+
+/* vote area */
+.vote-card{
+  background:#1d1a2a;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:14px;
+  padding:12px;
+  margin-top:10px;
+}
+.vote-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+.vote-name{
+  font-weight:1000;
+  font-size:20px;
+  letter-spacing:.6px;
+}
+.vote-pill{
+  padding:6px 10px;
+  border-radius:999px;
+  font-weight:900;
+  font-size:12px;
+  letter-spacing:.6px;
+  background:rgba(155,124,255,.18);
+  border:1px solid rgba(155,124,255,.45);
+  color:var(--muted);
+  white-space:nowrap;
+}
+.vote-actions{
+  margin-top:10px;
+  display:flex;
+  gap:10px;
+}
+.vote-actions button{margin:0}
+.small-note{
+  text-align:center;
+  color:#cfc9ff;
+  opacity:.9;
+  font-weight:800;
+  margin-top:8px;
+  line-height:1.25;
+}
+</style>
+</head>
+
+<body>
+<div id="app">
+
+<!-- SETUP -->
+<div id="scr-setup" class="screen active">
+  <h1 style="color:var(--primary);text-align:center;margin:0;letter-spacing:1px">VOCÊ NÃO ME CONHECE</h1>
+
+  <input id="in-name" placeholder="NOME DO JOGADOR" style="margin:12px 0;" />
+
+  <button class="btn-outline" onclick="addPlayer()">+ ADICIONAR JOGADOR</button>
+
+  <div id="player-list" class="scroll-y" style="flex:1;margin-top:10px;overflow-y:auto;-webkit-overflow-scrolling:touch"></div>
+
+  <button class="btn-gray" onclick="openRules()">📜 REGRAS</button>
+  <button class="btn-primary" onclick="startGame()">INICIAR PARTIDA</button>
+</div>
+
+<!-- LOBBY -->
+<div id="scr-lobby" class="screen">
+  <h3 style="text-align:center;opacity:.85;margin:10px 0 0 0">VEZ DO NARRADOR</h3>
+  <h1 id="lb-name" style="color:var(--primary);text-align:center;margin:6px 0 0 0;font-size:44px;letter-spacing:1px">?</h1>
+
+  <div class="lobby-box">
+    <div style="opacity:.85;font-weight:900;letter-spacing:1px">PONTUAÇÃO ATUAL</div>
+    <div id="lb-score" class="lobby-score">0</div>
+  </div>
+
+  <button class="btn-gray" onclick="openScore()">📊 VER PLACAR</button>
+
+  <div style="flex:1"></div>
+  <button class="btn-primary" style="height:90px;font-size:20px" onclick="revealCard()">REVELAR CARTA</button>
+</div>
+
+<!-- STORY -->
+<div id="scr-story" class="screen">
+  <h3 style="text-align:center;opacity:.85;margin:10px 0 0 0">NARRADOR:</h3>
+  <h1 id="st-name" style="color:var(--primary);text-align:center;margin:6px 0 12px 0;font-size:40px;letter-spacing:1px">?</h1>
+
+  <div class="vnmc-card">
+    <div class="vnmc-title">VOCÊ NÃO ME CONHECE</div>
+    <p id="st-text" class="vnmc-text">FRASE</p>
+
+    <p class="vnmc-sub" id="st-sub">
+      O narrador decide se conta uma <b style="color:var(--primary)">verdade</b> ou uma <b style="color:var(--primary)">mentira</b>.
+    </p>
+
+    <div id="choiceBox" style="display:flex;gap:10px;width:100%">
+      <button class="btn-outline" onclick="chooseTruth(true)">VOU CONTAR UMA VERDADE</button>
+      <button class="btn-outline" onclick="chooseTruth(false)">VOU CONTAR UMA MENTIRA</button>
+    </div>
+
+    <div id="afterChoice" style="display:none;margin-top:8px">
+      <button class="btn-gray" onclick="openHints()">💡 PRECISO DE DICAS</button>
+      <button class="btn-primary" onclick="startStory()">COMEÇAR HISTÓRIA</button>
+    </div>
+  </div>
+
+  <div style="flex:1"></div>
+  <button class="btn-gray" onclick="backToLobby()">VOLTAR</button>
+</div>
+
+<!-- STORY TIMER -->
+<div id="scr-timer" class="screen">
+  <h3 style="text-align:center;opacity:.85;margin:10px 0 0 0">NARRADOR:</h3>
+  <h1 id="tm-name" style="color:var(--primary);text-align:center;margin:6px 0 12px 0;font-size:40px;letter-spacing:1px">?</h1>
+
+  <div class="vnmc-card">
+    <div class="vnmc-title">CONTANDO A HISTÓRIA</div>
+    <p class="vnmc-text" style="font-size:56px;margin:4px 0 0 0" id="timerText">60s</p>
+    <div class="small-note">Sem penalidade: pode terminar antes ou depois.<br>Use apenas como referência.</div>
+  </div>
+
+  <div style="flex:1"></div>
+  <button class="btn-primary" style="height:90px;font-size:20px" onclick="startVoting()">INICIAR VOTAÇÃO</button>
+</div>
+
+<!-- VOTING -->
+<div id="scr-vote" class="screen">
+  <h3 style="text-align:center;opacity:.85;margin:10px 0 0 0">VOTO DE:</h3>
+  <h1 id="vt-name" style="color:var(--primary);text-align:center;margin:6px 0 12px 0;font-size:40px;letter-spacing:1px">?</h1>
+
+  <div class="vnmc-card">
+    <div class="vnmc-title">A HISTÓRIA FOI...</div>
+
+    <div class="vote-card">
+      <div class="vote-row">
+        <div class="vote-name" id="voteLabel">VOTO:</div>
+        <div class="vote-pill" id="voteProgress">0/0</div>
+      </div>
+
+      <div class="vote-actions">
+        <button class="btn-outline" onclick="castVote(true)">VERDADE</button>
+        <button class="btn-outline" onclick="castVote(false)">MENTIRA</button>
+      </div>
+
+      <div class="small-note">Cada um vota em silêncio. Depois mostraremos o resultado.</div>
+    </div>
+  </div>
+
+  <div style="flex:1"></div>
+  <button class="btn-gray" onclick="openScore()">📊 VER PLACAR</button>
+</div>
+
+<!-- RESULT -->
+<div id="scr-result" class="screen">
+  <h3 style="text-align:center;opacity:.85;margin:10px 0 0 0">RESULTADO</h3>
+  <h1 id="rs-title" style="color:var(--primary);text-align:center;margin:6px 0 12px 0;font-size:26px;letter-spacing:1px">—</h1>
+
+  <div class="vnmc-card">
+    <div class="vnmc-title" id="rs-truth">ERA VERDADE</div>
+
+    <div style="display:flex;flex-direction:column;gap:10px;margin-top:10px">
+      <div class="vote-card">
+        <div class="vote-row">
+          <div class="vote-name" style="font-size:18px">ACERTARAM (+1 cada)</div>
+          <div class="vote-pill" id="rs-okCount">0</div>
+        </div>
+        <div style="margin-top:10px;color:#fff;font-weight:800;line-height:1.35" id="rs-okList">—</div>
+      </div>
+
+      <div class="vote-card">
+        <div class="vote-row">
+          <div class="vote-name" style="font-size:18px">ERRARAM (+1 para o narrador por erro)</div>
+          <div class="vote-pill" id="rs-badCount">0</div>
+        </div>
+        <div style="margin-top:10px;color:#fff;font-weight:800;line-height:1.35" id="rs-badList">—</div>
+      </div>
+
+      <div class="vote-card">
+        <div class="vote-row">
+          <div class="vote-name" style="font-size:18px">NARRADOR</div>
+          <div class="vote-pill" id="rs-narratorPts">+0</div>
+        </div>
+        <div style="margin-top:10px;color:#fff;font-weight:900" id="rs-narratorName">—</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="flex:1"></div>
+  <button class="btn-gray" onclick="openScore()">📊 VER PLACAR</button>
+  <button class="btn-primary" style="height:90px;font-size:20px" onclick="nextRound()">PRÓXIMA RODADA</button>
+</div>
+
+<!-- MODAL: PLACAR -->
+<div id="modal-score" class="modal">
+  <div class="modal-box">
+    <div class="modal-title">PLACAR</div>
+
+    <button id="btnScoreEdit" class="btn-outline" onclick="toggleScoreEdit()">
+      ✏️ AJUSTAR PONTUAÇÃO
+    </button>
+
+    <div id="score-body" class="scroll-y" style="max-height:55vh;margin-top:10px"></div>
+
+    <div class="modal-actions" style="margin-top:12px">
+      <button class="btn-primary" onclick="closeScore()">VOLTAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL REGRAS -->
+<div id="modal-rules" class="modal">
+  <div class="modal-box">
+
+    <div class="modal-title">📜 REGRAS DO JOGO</div>
+
+    <div style="line-height:1.35;font-size:15px;color:#eee">
+
+      <p>
+        🎭 <b style="color:#a78bfa">1. O narrador</b><br>
+        Um jogador é o narrador da rodada.<br>
+        Ele recebe uma frase e escolhe, em segredo, se vai contar
+        <span style="color:#4ade80;font-weight:700">uma verdade</span>
+        ou
+        <span style="color:#f87171;font-weight:700">uma mentira</span>.
+      </p>
+
+      <p>
+        🗣️ <b style="color:#a78bfa">2. A história</b><br>
+        A frase é só o ponto de partida.<br>
+        O narrador pode exagerar, inventar ou ser totalmente sincero —
+        o objetivo é enganar os outros.
+      </p>
+
+      <p>
+        🤫 <b style="color:#a78bfa">3. Votação secreta</b><br>
+        Um por um, os outros jogadores votam em silêncio:<br>
+        👉 <b>Verdade</b> ou <b>Mentira</b>.
+      </p>
+
+      <p>
+        🏆 <b style="color:#a78bfa">4. Pontuação</b><br>
+        • Quem acertar ganha <span style="color:#4ade80;font-weight:700">+1 ponto</span><br>
+        • Cada erro dá <span style="color:#facc15;font-weight:700">+1 ponto</span> ao narrador
+      </p>
+
+      <p>
+        🔁 <b style="color:#a78bfa">5. Próxima rodada</b><br>
+        O próximo jogador vira narrador e o jogo continua.
+      </p>
+
+      <div style="
+        margin-top:10px;
+        padding:10px;
+        background:#2d2642;
+        border-radius:10px;
+        font-size:14px;
+        color:#ddd
+      ">
+        💡 <b>Dica:</b> Histórias simples demais parecem mentira.<br>
+        Histórias absurdas demais também.<br>
+        <b>O segredo está no meio.</b>
+      </div>
+
+    </div>
+
+    <div class="modal-actions" style="margin-top:14px">
+      <button class="btn-primary" onclick="closeRules()">OK</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL: DICAS -->
+<div id="modal-hints" class="modal">
+  <div class="modal-box">
+    <div class="modal-title">DICAS PARA A SUA HISTÓRIA</div>
+    <p class="modal-text" id="hintsTitle">—</p>
+
+    <div style="background:#1d1a2a;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:12px">
+      <div style="font-weight:1000;color:var(--primary);letter-spacing:.6px;margin-bottom:6px" id="hintsMode">—</div>
+      <div style="color:#fff;font-weight:800;line-height:1.35" id="hintsBody">—</div>
+    </div>
+
+    <div class="modal-actions" style="margin-top:12px">
+      <button class="btn-primary" onclick="closeHints()">VOLTAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: ALERTA -->
+<div id="modal-alert" class="modal">
+  <div class="modal-box">
+    <div class="modal-title">ATENÇÃO</div>
+    <p class="modal-text">Mínimo de 2 jogadores.</p>
+    <div class="modal-actions">
+      <button class="btn-primary" onclick="closeAlert()">OK</button>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+/* ===== CARTAS (150 cartas) ===== */
+const cards = [
+  {
+    t:"Eu já me dei conta de que estava mentindo… e tive que sustentar até o fim.",
+    hintsTruth:[
+      "Explique como a mentira começou sem intenção (impulso, vergonha, medo).",
+      "Mostre o momento em que percebeu que não dava mais pra voltar atrás.",
+      "Conte o preço de sustentar isso: cansaço, tensão ou consequência real."
+    ],
+    hintsLie:[
+      "Comece com uma mentira pequena e comum.",
+      "Inclua um ponto em que alguém faz uma pergunta inesperada.",
+      "Finalize com você 'dobrando a aposta' pra não ser descoberto."
+    ]
+  },
+  {
+    t:"Uma vez eu fui parar em um lugar que não fazia a menor ideia de onde estava.",
+    hintsTruth:[
+      "Diga como chegou lá (convite, erro, carona, GPS).",
+      "Descreva 1 detalhe estranho do lugar.",
+      "Explique como saiu dessa situação."
+    ],
+    hintsLie:[
+      "Escolha um local comum mas desconhecido pra você.",
+      "Adicione um detalhe visual simples (placa, rua, barulho).",
+      "Crie um desfecho rápido e plausível."
+    ]
+  },
+  {
+    t:"Eu já fui elogiado(a) por algo que eu não fiz… e aceitei.",
+    hintsTruth:[
+      "Explique quem fez o elogio e por quê.",
+      "Mostre sua reação interna (culpa, surpresa, orgulho).",
+      "Diga se isso teve alguma consequência depois."
+    ],
+    hintsLie:[
+      "Use um elogio genérico (trabalho, organização, ideia).",
+      "Inclua uma situação em grupo.",
+      "Finalize com alguém reforçando o elogio."
+    ]
+  },
+  {
+    t:"Já aconteceu de eu perceber tarde demais que entendi tudo errado.",
+    hintsTruth:[
+      "Conte o contexto do mal-entendido.",
+      "Mostre o momento da revelação.",
+      "Explique o impacto disso."
+    ],
+    hintsLie:[
+      "Use uma confusão comum (horário, convite, mensagem).",
+      "Adicione uma reação constrangedora.",
+      "Finalize com aprendizado ou risada."
+    ]
+  },
+  {
+    t:"Eu já tentei impressionar alguém… e saiu exatamente o contrário.",
+    hintsTruth:[
+      "Explique quem você queria impressionar.",
+      "Conte o plano original.",
+      "Mostre onde tudo deu errado."
+    ],
+    hintsLie:[
+      "Escolha uma tentativa simples (fala, atitude, gesto).",
+      "Inclua um erro pequeno que cresce.",
+      "Finalize com uma reação alheia inesperada."
+    ]
+  },
+  {
+    t:"Teve uma situação em que eu percebi que estava no lugar errado, na hora errada.",
+    hintsTruth:[
+      "Descreva rapidamente o ambiente.",
+      "Explique o que te fez perceber isso.",
+      "Conte como saiu ou lidou com a situação."
+    ],
+    hintsLie:[
+      "Use um contexto comum (reunião, festa, conversa).",
+      "Inclua um detalhe fora do lugar.",
+      "Finalize com uma saída discreta."
+    ]
+  },
+  {
+    t:"Eu já fingi entender algo só pra não passar vergonha.",
+    hintsTruth:[
+      "Diga o que você fingiu entender.",
+      "Explique por que não quis perguntar.",
+      "Mostre quando isso quase deu errado."
+    ],
+    hintsLie:[
+      "Escolha um assunto técnico ou social.",
+      "Inclua alguém usando termos difíceis.",
+      "Finalize com você escapando da situação."
+    ]
+  },
+  {
+    t:"Uma vez eu recebi uma informação que mudou completamente meu plano.",
+    hintsTruth:[
+      "Explique qual era o plano inicial.",
+      "Diga como a informação chegou.",
+      "Mostre a mudança de rumo."
+    ],
+    hintsLie:[
+      "Use um plano simples (viagem, encontro, decisão).",
+      "Inclua uma informação inesperada.",
+      "Finalize com adaptação rápida."
+    ]
+  },
+  {
+    t:"Eu já fui pego(a) de surpresa por alguém que eu não esperava ver.",
+    hintsTruth:[
+      "Explique quem era a pessoa.",
+      "Descreva o momento do encontro.",
+      "Conte sua reação."
+    ],
+    hintsLie:[
+      "Escolha alguém do passado ou fora do contexto.",
+      "Inclua um local comum.",
+      "Finalize com uma conversa breve."
+    ]
+  },
+  {
+    t:"Já aconteceu de eu concordar com algo só pra evitar conflito.",
+    hintsTruth:[
+      "Diga com quem foi.",
+      "Explique o motivo do conflito.",
+      "Mostre o efeito dessa decisão."
+    ],
+    hintsLie:[
+      "Use um conflito leve.",
+      "Inclua uma frase típica de concordância.",
+      "Finalize com arrependimento ou alívio."
+    ]
+  },
+  {
+    t:"Uma vez eu achei que tinha estragado tudo… mas no fim deu certo.",
+    hintsTruth:[
+      "Descreva o erro.",
+      "Mostre o momento de tensão.",
+      "Conte como se resolveu."
+    ],
+    hintsLie:[
+      "Escolha um erro pequeno.",
+      "Crie uma expectativa negativa.",
+      "Finalize com uma virada positiva."
+    ]
+  },
+  {
+    t:"Eu já fui surpreendido(a) por uma reação totalmente inesperada.",
+    hintsTruth:[
+      "Diga o que você fez ou disse.",
+      "Mostre a reação.",
+      "Explique por que foi inesperado."
+    ],
+    hintsLie:[
+      "Use uma ação neutra.",
+      "Inclua uma reação exagerada.",
+      "Finalize com silêncio ou risada."
+    ]
+  },
+  {
+    t:"Já teve um momento em que eu pensei: ‘era melhor ter ficado quieto(a)’.",
+    hintsTruth:[
+      "Explique o que você falou.",
+      "Mostre a reação alheia.",
+      "Conte o clima que ficou."
+    ],
+    hintsLie:[
+      "Use um comentário inocente.",
+      "Inclua um silêncio constrangedor.",
+      "Finalize com alguém mudando de assunto."
+    ]
+  },
+  {
+    t:"Uma vez eu precisei improvisar sem ter a menor ideia do que estava fazendo.",
+    hintsTruth:[
+      "Diga por que precisou improvisar.",
+      "Explique como começou.",
+      "Mostre o resultado."
+    ],
+    hintsLie:[
+      "Escolha uma situação comum.",
+      "Inclua tentativa e erro.",
+      "Finalize com alguém elogiando."
+    ]
+  },
+  {
+    t:"Eu já subestimei uma situação… e paguei por isso.",
+    hintsTruth:[
+      "Explique o que você subestimou.",
+      "Mostre o erro.",
+      "Conte a consequência."
+    ],
+    hintsLie:[
+      "Use algo simples (tempo, esforço, reação).",
+      "Inclua excesso de confiança.",
+      "Finalize com aprendizado."
+    ]
+  },
+  {
+    t:"Já aconteceu de eu mudar completamente de ideia em poucos minutos.",
+    hintsTruth:[
+      "Diga qual era a ideia inicial.",
+      "Explique o que fez mudar.",
+      "Mostre o resultado."
+    ],
+    hintsLie:[
+      "Use uma decisão cotidiana.",
+      "Inclua um argumento convincente.",
+      "Finalize com surpresa."
+    ]
+  },
+  {
+    t:"Eu já me vi defendendo algo que eu nem acreditava tanto assim.",
+    hintsTruth:[
+      "Explique por que defendeu.",
+      "Mostre o argumento usado.",
+      "Conte como se sentiu depois."
+    ],
+    hintsLie:[
+      "Use uma discussão leve.",
+      "Inclua alguém insistente.",
+      "Finalize com mudança de assunto."
+    ]
+  },
+  {
+    t:"Uma vez eu achei que estava ajudando… mas atrapalhei.",
+    hintsTruth:[
+      "Explique sua intenção.",
+      "Mostre o erro.",
+      "Conte a reação da outra pessoa."
+    ],
+    hintsLie:[
+      "Escolha uma ajuda simples.",
+      "Inclua um mal-entendido.",
+      "Finalize com correção."
+    ]
+  },
+  {
+    t:"Já tive que disfarçar uma reação pra não parecer estranho(a).",
+    hintsTruth:[
+      "Explique o que você sentiu.",
+      "Mostre por que precisou disfarçar.",
+      "Conte se alguém percebeu."
+    ],
+    hintsLie:[
+      "Use uma reação comum.",
+      "Inclua controle emocional.",
+      "Finalize com tensão."
+    ]
+  },
+  {
+    t:"Eu já fui convencido(a) por um argumento que parecia fraco… mas funcionou.",
+    hintsTruth:[
+      "Explique o argumento.",
+      "Mostre sua resistência inicial.",
+      "Conte o momento da virada."
+    ],
+    hintsLie:[
+      "Use um argumento simples.",
+      "Inclua insistência.",
+      "Finalize com aceitação."
+    ]
+  },
+  {
+    t:"Uma vez eu percebi que todo mundo tinha entendido algo diferente de mim.",
+    hintsTruth:[
+      "Explique o contexto.",
+      "Mostre o choque.",
+      "Conte como isso se resolveu."
+    ],
+    hintsLie:[
+      "Use uma reunião ou conversa.",
+      "Inclua troca de olhares.",
+      "Finalize com explicação."
+    ]
+  },
+  {
+    t:"Já aconteceu de eu confiar demais e me arrepender.",
+    hintsTruth:[
+      "Diga em quem confiou.",
+      "Explique o erro.",
+      "Conte a lição."
+    ],
+    hintsLie:[
+      "Use uma confiança simples.",
+      "Inclua quebra de expectativa.",
+      "Finalize com cautela futura."
+    ]
+  },
+  {
+    t:"Eu já fui pego(a) desprevenido(a) por uma pergunta direta.",
+    hintsTruth:[
+      "Explique a pergunta.",
+      "Mostre sua reação.",
+      "Conte o que respondeu."
+    ],
+    hintsLie:[
+      "Use uma pergunta comum.",
+      "Inclua hesitação.",
+      "Finalize com resposta vaga."
+    ]
+  },
+  {
+    t:"Uma vez eu achei que estava atrasado(a)… e não estava.",
+    hintsTruth:[
+      "Explique o motivo da pressa.",
+      "Mostre o alívio.",
+      "Conte o que aconteceu depois."
+    ],
+    hintsLie:[
+      "Use relógio, horário ou mensagem.",
+      "Inclua correria.",
+      "Finalize com espera."
+    ]
+  },
+  {
+    t:"Já aconteceu de eu mudar meu comportamento só por causa do ambiente.",
+    hintsTruth:[
+      "Descreva o ambiente.",
+      "Explique a mudança.",
+      "Conte o impacto."
+    ],
+    hintsLie:[
+      "Use ambiente social comum.",
+      "Inclua adaptação.",
+      "Finalize com retorno ao normal."
+    ]
+  },
+  {
+    t:"Eu já me arrependi de ter falado a primeira coisa que veio à cabeça.",
+    hintsTruth:[
+      "Explique o comentário.",
+      "Mostre a reação.",
+      "Conte o arrependimento."
+    ],
+    hintsLie:[
+      "Use comentário espontâneo.",
+      "Inclua clima estranho.",
+      "Finalize com correção."
+    ]
+  },
+  {
+    t:"Uma vez eu precisei decidir rápido… sem todas as informações.",
+    hintsTruth:[
+      "Explique a decisão.",
+      "Mostre a pressão.",
+      "Conte o resultado."
+    ],
+    hintsLie:[
+      "Use escolha simples.",
+      "Inclua urgência.",
+      "Finalize com aceitação."
+    ]
+  },
+  {
+    t:"Já aconteceu de eu perceber tarde demais que tinha entendido errado o combinado.",
+    hintsTruth:[
+      "Explique o combinado.",
+      "Mostre a confusão.",
+      "Conte a consequência."
+    ],
+    hintsLie:[
+      "Use acordo verbal.",
+      "Inclua interpretação errada.",
+      "Finalize com ajuste."
+    ]
+  },
+  {
+    t:"Eu já vi alguém mudar completamente de postura durante uma conversa.",
+    hintsTruth:[
+      "Descreva a mudança.",
+      "Explique o gatilho.",
+      "Conte o clima final."
+    ],
+    hintsLie:[
+      "Use conversa casual.",
+      "Inclua tom diferente.",
+      "Finalize com silêncio."
+    ]
+  },
+  {
+    t:"Uma vez eu percebi que estava levando algo muito mais a sério que os outros.",
+    hintsTruth:[
+      "Explique o assunto.",
+      "Mostre o contraste.",
+      "Conte como se sentiu."
+    ],
+    hintsLie:[
+      "Use situação comum.",
+      "Inclua risadas alheias.",
+      "Finalize com relaxamento."
+    ]
+  },
+{
+  t:"Já teve um momento em que eu percebi que todo mundo estava me observando.",
+  hintsTruth:[
+    "Descreva o ambiente e o motivo da atenção.",
+    "Explique o que você estava fazendo quando percebeu.",
+    "Conte como reagiu ao notar isso."
+  ],
+  hintsLie:[
+    "Escolha um ambiente público comum.",
+    "Inclua um gesto ou ação chamativa.",
+    "Finalize com você saindo da situação."
+  ]
+},
+{
+  t:"Uma vez eu precisei justificar algo que parecia injustificável.",
+  hintsTruth:[
+    "Explique o que precisava justificar.",
+    "Mostre a reação inicial da outra pessoa.",
+    "Conte como terminou a conversa."
+  ],
+  hintsLie:[
+    "Use uma situação cotidiana.",
+    "Inclua uma justificativa improvisada.",
+    "Finalize com alguém aceitando, mesmo desconfiado."
+  ]
+},
+{
+  t:"Eu já senti que estava sendo julgado(a) sem ninguém falar nada.",
+  hintsTruth:[
+    "Descreva o clima da situação.",
+    "Explique o que você fez ou disse.",
+    "Conte como isso te afetou."
+  ],
+  hintsLie:[
+    "Use silêncio e troca de olhares.",
+    "Inclua uma atitude sua fora do padrão.",
+    "Finalize com desconforto geral."
+  ]
+},
+{
+  t:"Já aconteceu de eu perceber que estava completamente fora de sintonia com o grupo.",
+  hintsTruth:[
+    "Explique o contexto do grupo.",
+    "Mostre o momento em que percebeu isso.",
+    "Conte como lidou com a situação."
+  ],
+  hintsLie:[
+    "Use uma conversa ou atividade coletiva.",
+    "Inclua uma opinião diferente da maioria.",
+    "Finalize com adaptação ou silêncio."
+  ]
+},
+{
+  t:"Uma vez eu achei que estava sendo discreto(a)… mas não estava.",
+  hintsTruth:[
+    "Explique o que você tentou esconder.",
+    "Mostre como percebeu que falhou.",
+    "Conte a reação dos outros."
+  ],
+  hintsLie:[
+    "Use uma ação simples.",
+    "Inclua alguém percebendo primeiro.",
+    "Finalize com constrangimento leve."
+  ]
+},
+{
+  t:"Já precisei sustentar uma versão da história que não era exatamente como aconteceu.",
+  hintsTruth:[
+    "Explique por que alterou a versão.",
+    "Mostre o ponto mais difícil de sustentar.",
+    "Conte se alguém desconfiou."
+  ],
+  hintsLie:[
+    "Use alteração pequena da verdade.",
+    "Inclua repetição da história.",
+    "Finalize com aceitação geral."
+  ]
+},
+{
+  t:"Uma vez eu achei que tinha controle da situação… até não ter mais.",
+  hintsTruth:[
+    "Descreva a situação inicial.",
+    "Mostre o momento da perda de controle.",
+    "Conte o resultado."
+  ],
+  hintsLie:[
+    "Use algo simples que foge do esperado.",
+    "Inclua reação em cadeia.",
+    "Finalize com aprendizado."
+  ]
+},
+{
+  t:"Já aconteceu de eu me arrepender imediatamente depois de dizer ‘sim’.",
+  hintsTruth:[
+    "Explique para o que você disse sim.",
+    "Mostre o arrependimento rápido.",
+    "Conte o que aconteceu depois."
+  ],
+  hintsLie:[
+    "Use convite ou pedido comum.",
+    "Inclua hesitação ignorada.",
+    "Finalize com consequência leve."
+  ]
+},
+{
+  t:"Eu já fui surpreendido(a) por alguém concordando comigo quando eu não esperava.",
+  hintsTruth:[
+    "Explique sua expectativa inicial.",
+    "Mostre a surpresa.",
+    "Conte como isso mudou a situação."
+  ],
+  hintsLie:[
+    "Use opinião comum.",
+    "Inclua alguém inesperado apoiando.",
+    "Finalize com silêncio ou risada."
+  ]
+},
+{
+  t:"Uma vez eu percebi que tinha falado mais do que devia.",
+  hintsTruth:[
+    "Explique o contexto da conversa.",
+    "Mostre o momento da percepção.",
+    "Conte como tentou contornar."
+  ],
+  hintsLie:[
+    "Use conversa informal.",
+    "Inclua informação extra.",
+    "Finalize com clima estranho."
+  ]
+},
+{
+  t:"Já aconteceu de eu mudar meu discurso no meio da conversa.",
+  hintsTruth:[
+    "Explique por que mudou.",
+    "Mostre a reação da outra pessoa.",
+    "Conte se isso funcionou."
+  ],
+  hintsLie:[
+    "Use conversa persuasiva.",
+    "Inclua contradição leve.",
+    "Finalize com aceitação."
+  ]
+},
+{
+  t:"Eu já me vi tentando convencer alguém… sem acreditar totalmente no que eu dizia.",
+  hintsTruth:[
+    "Explique o motivo da tentativa.",
+    "Mostre sua insegurança.",
+    "Conte o resultado."
+  ],
+  hintsLie:[
+    "Use argumento razoável.",
+    "Inclua tom confiante.",
+    "Finalize com dúvida interna."
+  ]
+},
+{
+  t:"Uma vez eu percebi que estava levando uma situação muito mais a sério que os outros.",
+  hintsTruth:[
+    "Explique a situação.",
+    "Mostre o contraste de reações.",
+    "Conte como se sentiu."
+  ],
+  hintsLie:[
+    "Use algo trivial.",
+    "Inclua risadas alheias.",
+    "Finalize com relaxamento."
+  ]
+},
+{
+  t:"Já aconteceu de eu ficar sem reação por alguns segundos.",
+  hintsTruth:[
+    "Explique o que causou isso.",
+    "Mostre o silêncio.",
+    "Conte o que veio depois."
+  ],
+  hintsLie:[
+    "Use surpresa comum.",
+    "Inclua pausa dramática.",
+    "Finalize com resposta simples."
+  ]
+},
+{
+  t:"Eu já achei que tinha entendido tudo… e estava completamente errado(a).",
+  hintsTruth:[
+    "Explique sua interpretação inicial.",
+    "Mostre a correção.",
+    "Conte a reação."
+  ],
+  hintsLie:[
+    "Use informação incompleta.",
+    "Inclua correção pública.",
+    "Finalize com constrangimento."
+  ]
+},
+{
+  t:"Uma vez eu me senti pressionado(a) a reagir de um jeito específico.",
+  hintsTruth:[
+    "Explique quem pressionou.",
+    "Mostre o que esperavam de você.",
+    "Conte sua decisão."
+  ],
+  hintsLie:[
+    "Use grupo ou autoridade.",
+    "Inclua expectativa clara.",
+    "Finalize com adaptação."
+  ]
+},
+{
+  t:"Já aconteceu de eu perceber que tinha criado uma expectativa errada.",
+  hintsTruth:[
+    "Explique a expectativa.",
+    "Mostre a quebra.",
+    "Conte o impacto."
+  ],
+  hintsLie:[
+    "Use expectativa simples.",
+    "Inclua frustração.",
+    "Finalize com ajuste."
+  ]
+},
+{
+  t:"Eu já me peguei tentando parecer mais confiante do que realmente estava.",
+  hintsTruth:[
+    "Explique o motivo.",
+    "Mostre o esforço.",
+    "Conte se funcionou."
+  ],
+  hintsLie:[
+    "Use postura corporal.",
+    "Inclua fala segura.",
+    "Finalize com alívio."
+  ]
+},
+{
+  t:"Uma vez eu precisei escolher rápido sem poder explicar o motivo.",
+  hintsTruth:[
+    "Explique a urgência.",
+    "Mostre a escolha.",
+    "Conte a reação alheia."
+  ],
+  hintsLie:[
+    "Use decisão prática.",
+    "Inclua pressão externa.",
+    "Finalize com aceitação."
+  ]
+},
+{
+  t:"Já aconteceu de eu perceber que alguém esperava uma reação diferente da minha.",
+  hintsTruth:[
+    "Explique o que você fez.",
+    "Mostre a expectativa alheia.",
+    "Conte o clima depois."
+  ],
+  hintsLie:[
+    "Use reação neutra.",
+    "Inclua surpresa do outro.",
+    "Finalize com silêncio."
+  ]
+},
+{
+  t:"Eu já me arrependi de não ter perguntado algo na hora certa.",
+  hintsTruth:[
+    "Explique o que deixou passar.",
+    "Mostre a consequência.",
+    "Conte quando percebeu."
+  ],
+  hintsLie:[
+    "Use dúvida simples.",
+    "Inclua oportunidade perdida.",
+    "Finalize com frustração."
+  ]
+},
+{
+  t:"Uma vez eu percebi que estava seguindo o fluxo sem pensar muito.",
+  hintsTruth:[
+    "Explique o contexto.",
+    "Mostre o automático.",
+    "Conte o resultado."
+  ],
+  hintsLie:[
+    "Use decisão em grupo.",
+    "Inclua piloto automático.",
+    "Finalize com reflexão."
+  ]
+},
+{
+  t:"Já aconteceu de eu discordar internamente, mas não externar.",
+  hintsTruth:[
+    "Explique o motivo.",
+    "Mostre o silêncio.",
+    "Conte o impacto."
+  ],
+  hintsLie:[
+    "Use conversa coletiva.",
+    "Inclua concordância aparente.",
+    "Finalize com incômodo."
+  ]
+},
+{
+  t:"Eu já percebi tarde demais que alguém tinha entendido errado o que eu disse.",
+  hintsTruth:[
+    "Explique o que foi dito.",
+    "Mostre o erro de interpretação.",
+    "Conte a correção."
+  ],
+  hintsLie:[
+    "Use frase ambígua.",
+    "Inclua reação inesperada.",
+    "Finalize com esclarecimento."
+  ]
+},
+{
+  t:"Uma vez eu tive que escolher entre ser sincero(a) ou conveniente.",
+  hintsTruth:[
+    "Explique o dilema.",
+    "Mostre sua escolha.",
+    "Conte a consequência."
+  ],
+  hintsLie:[
+    "Use dilema social.",
+    "Inclua pressão.",
+    "Finalize com decisão rápida."
+  ]
+},
+{
+  t:"Já aconteceu de eu perceber que alguém esperava mais de mim naquela situação.",
+  hintsTruth:[
+    "Explique quem era.",
+    "Mostre a expectativa.",
+    "Conte como reagiu."
+  ],
+  hintsLie:[
+    "Use expectativa implícita.",
+    "Inclua desconforto.",
+    "Finalize com esforço."
+  ]
+},
+{
+  t:"Eu já senti que estava improvisando… e ninguém percebeu.",
+  hintsTruth:[
+    "Explique o improviso.",
+    "Mostre sua insegurança.",
+    "Conte o resultado."
+  ],
+  hintsLie:[
+    "Use improviso simples.",
+    "Inclua fluidez aparente.",
+    "Finalize com sucesso."
+  ]
+},
+{
+  t:"Uma vez eu percebi que estava defendendo alguém sem perceber.",
+  hintsTruth:[
+    "Explique a situação.",
+    "Mostre quando percebeu.",
+    "Conte a reação."
+  ],
+  hintsLie:[
+    "Use conversa informal.",
+    "Inclua defesa automática.",
+    "Finalize com surpresa."
+  ]
+},
+{
+  t:"Já aconteceu de eu perceber que tinha sido interpretado(a) de forma errada.",
+  hintsTruth:[
+    "Explique a interpretação.",
+    "Mostre o impacto.",
+    "Conte a correção."
+  ],
+  hintsLie:[
+    "Use fala ambígua.",
+    "Inclua reação inesperada.",
+    "Finalize com explicação."
+  ]
+},
+{
+  t:"Já aconteceu de eu perceber que estava sendo testado(a) sem aviso.",
+  hintsTruth:[
+    "Explique quem estava te testando e por quê.",
+    "Mostre o momento em que você percebeu.",
+    "Conte como você reagiu ao teste."
+  ],
+  hintsLie:[
+    "Use uma situação social ou profissional.",
+    "Inclua uma pergunta inesperada.",
+    "Finalize com você passando no teste."
+  ]
+},
+{
+  t:"Uma vez eu precisei tomar uma posição que não era exatamente a minha.",
+  hintsTruth:[
+    "Explique por que você assumiu essa posição.",
+    "Mostre o conflito interno.",
+    "Conte o resultado."
+  ],
+  hintsLie:[
+    "Use pressão externa como motivo.",
+    "Inclua alguém esperando essa postura.",
+    "Finalize com alívio depois."
+  ]
+},
+{
+  t:"Já aconteceu de eu perceber que alguém estava tentando me manipular.",
+  hintsTruth:[
+    "Explique os sinais da manipulação.",
+    "Mostre sua reação.",
+    "Conte como a situação terminou."
+  ],
+  hintsLie:[
+    "Use elogios ou pedidos sutis.",
+    "Inclua sua desconfiança.",
+    "Finalize com você se antecipando."
+  ]
+},
+{
+  t:"Eu já me vi defendendo uma ideia que nem era tão importante pra mim.",
+  hintsTruth:[
+    "Explique por que entrou na discussão.",
+    "Mostre como isso cresceu.",
+    "Conte como saiu."
+  ],
+  hintsLie:[
+    "Use debate leve.",
+    "Inclua orgulho envolvido.",
+    "Finalize com desistência."
+  ]
+},
+{
+  t:"Uma vez eu achei que tinha entendido tudo errado… mas no fim estava certo(a).",
+  hintsTruth:[
+    "Explique a confusão inicial.",
+    "Mostre o momento da confirmação.",
+    "Conte a reação dos outros."
+  ],
+  hintsLie:[
+    "Use mal-entendido comum.",
+    "Inclua correção posterior.",
+    "Finalize com surpresa."
+  ]
+},
+{
+  t:"Já aconteceu de eu me sentir deslocado(a) mesmo estando entre conhecidos.",
+  hintsTruth:[
+    "Explique o ambiente.",
+    "Mostre o sentimento.",
+    "Conte como lidou."
+  ],
+  hintsLie:[
+    "Use encontro ou evento.",
+    "Inclua conversa fora do seu universo.",
+    "Finalize com adaptação."
+  ]
+},
+{
+  t:"Eu já percebi tarde demais que tinha interpretado mal uma situação.",
+  hintsTruth:[
+    "Explique sua interpretação inicial.",
+    "Mostre a correção.",
+    "Conte a consequência."
+  ],
+  hintsLie:[
+    "Use suposição equivocada.",
+    "Inclua reação exagerada.",
+    "Finalize com ajuste."
+  ]
+},
+{
+  t:"Uma vez eu precisei fingir naturalidade em algo que me deixou tenso(a).",
+  hintsTruth:[
+    "Explique o motivo da tensão.",
+    "Mostre o esforço para disfarçar.",
+    "Conte se alguém percebeu."
+  ],
+  hintsLie:[
+    "Use situação inesperada.",
+    "Inclua controle corporal.",
+    "Finalize com sucesso aparente."
+  ]
+},
+{
+  t:"Já aconteceu de eu mudar completamente de ideia depois de ouvir alguém.",
+  hintsTruth:[
+    "Explique sua ideia inicial.",
+    "Mostre o argumento que mudou tudo.",
+    "Conte o desfecho."
+  ],
+  hintsLie:[
+    "Use conversa convincente.",
+    "Inclua detalhe decisivo.",
+    "Finalize com mudança rápida."
+  ]
+},
+{
+  t:"Eu já me vi concordando só para evitar uma discussão.",
+  hintsTruth:[
+    "Explique o contexto.",
+    "Mostre sua decisão.",
+    "Conte como se sentiu depois."
+  ],
+  hintsLie:[
+    "Use conversa cansativa.",
+    "Inclua vontade de encerrar.",
+    "Finalize com silêncio."
+  ]
+},
+{
+  t:"Uma vez eu percebi que alguém esperava que eu tomasse a iniciativa.",
+  hintsTruth:[
+    "Explique a situação.",
+    "Mostre a expectativa.",
+    "Conte sua escolha."
+  ],
+  hintsLie:[
+    "Use hesitação inicial.",
+    "Inclua pressão implícita.",
+    "Finalize com ação."
+  ]
+},
+{
+  t:"Já aconteceu de eu ficar dividido(a) entre duas versões da mesma história.",
+  hintsTruth:[
+    "Explique as versões.",
+    "Mostre o dilema.",
+    "Conte a decisão."
+  ],
+  hintsLie:[
+    "Use versões parecidas.",
+    "Inclua dúvida.",
+    "Finalize com escolha."
+  ]
+},
+{
+  t:"Eu já senti que estava representando um papel por alguns minutos.",
+  hintsTruth:[
+    "Explique o motivo.",
+    "Mostre o esforço.",
+    "Conte quando acabou."
+  ],
+  hintsLie:[
+    "Use ambiente social.",
+    "Inclua comportamento adaptado.",
+    "Finalize com alívio."
+  ]
+},
+{
+  t:"Uma vez eu percebi que alguém estava esperando uma reação específica minha.",
+  hintsTruth:[
+    "Explique a expectativa.",
+    "Mostre sua reação real.",
+    "Conte a consequência."
+  ],
+  hintsLie:[
+    "Use pressão emocional.",
+    "Inclua surpresa.",
+    "Finalize com adaptação."
+  ]
+},
+{
+  t:"Já aconteceu de eu perceber que estava me explicando demais.",
+  hintsTruth:[
+    "Explique o contexto.",
+    "Mostre a reação do outro.",
+    "Conte quando percebeu."
+  ],
+  hintsLie:[
+    "Use justificativa excessiva.",
+    "Inclua silêncio alheio.",
+    "Finalize com pausa."
+  ]
+},
+{
+  t:"Eu já me vi em uma situação onde qualquer resposta parecia errada.",
+  hintsTruth:[
+    "Explique o dilema.",
+    "Mostre a tensão.",
+    "Conte a saída."
+  ],
+  hintsLie:[
+    "Use escolha difícil.",
+    "Inclua pressão.",
+    "Finalize com resposta neutra."
+  ]
+},
+{
+  t:"Uma vez eu percebi que estava sendo observado(a) por alguém específico.",
+  hintsTruth:[
+    "Explique quem era.",
+    "Mostre o comportamento.",
+    "Conte sua reação."
+  ],
+  hintsLie:[
+    "Use olhar insistente.",
+    "Inclua desconforto.",
+    "Finalize com confronto interno."
+  ]
+},
+{
+  t:"Já aconteceu de eu perceber que estava indo longe demais em uma explicação.",
+  hintsTruth:[
+    "Explique o tema.",
+    "Mostre o exagero.",
+    "Conte a reação."
+  ],
+  hintsLie:[
+    "Use explicação técnica.",
+    "Inclua interrupção.",
+    "Finalize com correção."
+  ]
+},
+{
+  t:"Eu já senti que precisava justificar algo que ninguém pediu.",
+  hintsTruth:[
+    "Explique o impulso.",
+    "Mostre o silêncio alheio.",
+    "Conte o constrangimento."
+  ],
+  hintsLie:[
+    "Use culpa leve.",
+    "Inclua justificativa rápida.",
+    "Finalize com risada."
+  ]
+},
+{
+  t:"Uma vez eu percebi que estava tentando agradar pessoas diferentes ao mesmo tempo.",
+  hintsTruth:[
+    "Explique o conflito.",
+    "Mostre o desgaste.",
+    "Conte o resultado."
+  ],
+  hintsLie:[
+    "Use grupos distintos.",
+    "Inclua malabarismo social.",
+    "Finalize com escolha."
+  ]
+},
+{
+  t:"Já aconteceu de eu perceber que alguém tinha uma expectativa errada sobre mim.",
+  hintsTruth:[
+    "Explique a expectativa.",
+    "Mostre sua reação.",
+    "Conte se corrigiu."
+  ],
+  hintsLie:[
+    "Use estereótipo leve.",
+    "Inclua surpresa.",
+    "Finalize com esclarecimento."
+  ]
+},
+{
+  t:"Eu já me vi tentando parecer mais calmo(a) do que estava.",
+  hintsTruth:[
+    "Explique o motivo da tensão.",
+    "Mostre o disfarce.",
+    "Conte o desfecho."
+  ],
+  hintsLie:[
+    "Use situação inesperada.",
+    "Inclua controle emocional.",
+    "Finalize com sucesso."
+  ]
+},
+{
+  t:"Uma vez eu percebi que estava defendendo algo só por orgulho.",
+  hintsTruth:[
+    "Explique o motivo.",
+    "Mostre a insistência.",
+    "Conte quando percebeu."
+  ],
+  hintsLie:[
+    "Use debate leve.",
+    "Inclua teimosia.",
+    "Finalize com desistência."
+  ]
+},
+{
+  t:"Já aconteceu de eu perceber que alguém esperava que eu mentisse.",
+  hintsTruth:[
+    "Explique a expectativa.",
+    "Mostre sua decisão.",
+    "Conte a reação."
+  ],
+  hintsLie:[
+    "Use situação ambígua.",
+    "Inclua olhar cúmplice.",
+    "Finalize com surpresa."
+  ]
+},
+{
+  t:"Eu já senti que estava sendo avaliado(a) sem critérios claros.",
+  hintsTruth:[
+    "Explique o contexto.",
+    "Mostre a insegurança.",
+    "Conte o resultado."
+  ],
+  hintsLie:[
+    "Use situação formal.",
+    "Inclua avaliação implícita.",
+    "Finalize com alívio."
+  ]
+},
+{
+  t:"Uma vez eu percebi que estava tentando controlar demais uma situação.",
+  hintsTruth:[
+    "Explique o motivo.",
+    "Mostre o excesso.",
+    "Conte o impacto."
+  ],
+  hintsLie:[
+    "Use organização exagerada.",
+    "Inclua reação alheia.",
+    "Finalize com soltura."
+  ]
+},
+{
+  t:"Já aconteceu de eu perceber que estava reagindo mais por impulso do que por razão.",
+  hintsTruth:[
+    "Explique o gatilho.",
+    "Mostre a reação.",
+    "Conte a consequência."
+  ],
+  hintsLie:[
+    "Use emoção forte.",
+    "Inclua decisão rápida.",
+    "Finalize com reflexão."
+  ]
+},
+{
+  t:"Eu já me vi em uma situação onde precisava ganhar tempo para pensar.",
+  hintsTruth:[
+    "Explique o motivo.",
+    "Mostre a estratégia.",
+    "Conte se funcionou."
+  ],
+  hintsLie:[
+    "Use pausa calculada.",
+    "Inclua distração.",
+    "Finalize com resposta."
+  ]
+},
+{
+  t:"Uma vez eu percebi que estava concordando só para encerrar o assunto.",
+  hintsTruth:[
+    "Explique o desgaste.",
+    "Mostre a decisão.",
+    "Conte o alívio."
+  ],
+  hintsLie:[
+    "Use conversa longa.",
+    "Inclua concordância forçada.",
+    "Finalize com mudança de tema."
+  ]
+},
+{
+  t:"Eu já tentei sair de uma situação constrangedora fingindo que nada estava acontecendo.",
+  hintsTruth:[
+    "Descreva o constrangimento em 1 frase.",
+    "Mostre como você tentou agir normalmente.",
+    "Conte se alguém percebeu."
+  ],
+  hintsLie:[
+    "Use algo público (fila, reunião, grupo).",
+    "Inclua um detalhe corporal difícil de controlar.",
+    "Finalize com alguém chamando sua atenção."
+  ]
+},
+{
+  t:"Uma vez eu ri em um momento completamente inadequado.",
+  hintsTruth:[
+    "Explique o contexto sério.",
+    "Mostre o gatilho do riso.",
+    "Conte a reação das pessoas."
+  ],
+  hintsLie:[
+    "Use silêncio constrangedor.",
+    "Inclua tentativa de disfarce.",
+    "Finalize com piora da situação."
+  ]
+},
+{
+  t:"Eu já fui embora achando que estava tudo certo… e não estava.",
+  hintsTruth:[
+    "Explique por que você achou que estava tudo resolvido.",
+    "Mostre quando percebeu o erro.",
+    "Conte a consequência."
+  ],
+  hintsLie:[
+    "Use despedida confiante.",
+    "Inclua retorno constrangedor.",
+    "Finalize com pedido de desculpa."
+  ]
+},
+{
+  t:"Já aconteceu de eu responder algo completamente errado por achar que tinha entendido a pergunta.",
+  hintsTruth:[
+    "Explique o mal-entendido.",
+    "Mostre a resposta errada.",
+    "Conte a reação alheia."
+  ],
+  hintsLie:[
+    "Use pergunta ambígua.",
+    "Inclua silêncio depois da resposta.",
+    "Finalize com correção."
+  ]
+},
+{
+  t:"Eu já percebi tarde demais que estava falando alto demais.",
+  hintsTruth:[
+    "Explique o ambiente.",
+    "Mostre o momento da percepção.",
+    "Conte a reação dos outros."
+  ],
+  hintsLie:[
+    "Use comentário inocente.",
+    "Inclua mudança de tom.",
+    "Finalize com constrangimento."
+  ]
+},
+{
+  t:"Uma vez eu entrei em uma conversa achando que era uma coisa… e era outra completamente diferente.",
+  hintsTruth:[
+    "Explique o tema que você achava que era.",
+    "Mostre sua participação.",
+    "Conte quando percebeu."
+  ],
+  hintsLie:[
+    "Use conversa em grupo.",
+    "Inclua comentário fora de contexto.",
+    "Finalize com risadas."
+  ]
+},
+{
+  t:"Já aconteceu de eu confirmar algo só para não pedir para repetir.",
+  hintsTruth:[
+    "Explique o contexto.",
+    "Mostre o momento do 'sim'.",
+    "Conte o problema depois."
+  ],
+  hintsLie:[
+    "Use barulho ou distração.",
+    "Inclua confusão posterior.",
+    "Finalize com improviso."
+  ]
+},
+{
+  t:"Eu já me empolguei contando algo e percebi que ninguém estava prestando atenção.",
+  hintsTruth:[
+    "Explique o assunto.",
+    "Mostre o momento da percepção.",
+    "Conte como terminou."
+  ],
+  hintsLie:[
+    "Use narrativa longa.",
+    "Inclua celulares ou distrações.",
+    "Finalize com piada."
+  ]
+},
+{
+  t:"Uma vez eu cumprimentei alguém achando que era outra pessoa.",
+  hintsTruth:[
+    "Explique a confusão.",
+    "Mostre a reação da pessoa.",
+    "Conte como você saiu da situação."
+  ],
+  hintsLie:[
+    "Use ambiente movimentado.",
+    "Inclua cumprimento exagerado.",
+    "Finalize com pedido de desculpa."
+  ]
+},
+{
+  t:"Já aconteceu de eu fingir que entendi uma referência que eu não fazia ideia.",
+  hintsTruth:[
+    "Explique a referência.",
+    "Mostre sua reação fingida.",
+    "Conte se foi descoberto."
+  ],
+  hintsLie:[
+    "Use cultura pop ou piada interna.",
+    "Inclua risada estratégica.",
+    "Finalize com pergunta salvadora."
+  ]
+},
+{
+  t:"Eu já comecei uma história sem saber como ela ia terminar.",
+  hintsTruth:[
+    "Explique por que começou.",
+    "Mostre o improviso.",
+    "Conte como encerrou."
+  ],
+  hintsLie:[
+    "Use detalhe inicial forte.",
+    "Inclua pausa dramática.",
+    "Finalize com final genérico."
+  ]
+},
+{
+  t:"Uma vez eu achei que estava arrasando… mas só depois percebi que não.",
+  hintsTruth:[
+    "Explique o que você achou que foi ótimo.",
+    "Mostre o choque depois.",
+    "Conte a reação."
+  ],
+  hintsLie:[
+    "Use elogio mal interpretado.",
+    "Inclua silêncio estranho.",
+    "Finalize com constrangimento."
+  ]
+},
+{
+  t:"Já aconteceu de eu falar algo achando que estava ajudando… e não ajudei.",
+  hintsTruth:[
+    "Explique sua intenção.",
+    "Mostre a reação.",
+    "Conte como percebeu."
+  ],
+  hintsLie:[
+    "Use conselho óbvio.",
+    "Inclua olhar desconfiado.",
+    "Finalize com pedido de desculpa."
+  ]
+},
+{
+  t:"Eu já percebi que estava exagerando no meio da própria história.",
+  hintsTruth:[
+    "Explique o exagero.",
+    "Mostre sua autocorreção.",
+    "Conte a reação."
+  ],
+  hintsLie:[
+    "Use detalhe improvável.",
+    "Inclua tentativa de ajuste.",
+    "Finalize com risada."
+  ]
+},
+{
+  t:"Uma vez eu fui interrompido(a) no pior momento possível.",
+  hintsTruth:[
+    "Explique o momento.",
+    "Mostre quem interrompeu.",
+    "Conte o impacto."
+  ],
+  hintsLie:[
+    "Use suspense.",
+    "Inclua interrupção abrupta.",
+    "Finalize com frustração."
+  ]
+},
+{
+  t:"Já aconteceu de eu perceber que estava concordando com algo absurdo.",
+  hintsTruth:[
+    "Explique por que concordou.",
+    "Mostre quando percebeu.",
+    "Conte como saiu."
+  ],
+  hintsLie:[
+    "Use conversa rápida.",
+    "Inclua aceno automático.",
+    "Finalize com correção."
+  ]
+},
+{
+  t:"Eu já tentei mudar de assunto de forma nada sutil.",
+  hintsTruth:[
+    "Explique o motivo.",
+    "Mostre a mudança brusca.",
+    "Conte a reação."
+  ],
+  hintsLie:[
+    "Use comentário aleatório.",
+    "Inclua silêncio depois.",
+    "Finalize com risadas."
+  ]
+},
+{
+  t:"Uma vez eu percebi que estava defendendo algo que eu nem acreditava tanto.",
+  hintsTruth:[
+    "Explique como entrou nisso.",
+    "Mostre a insistência.",
+    "Conte quando desistiu."
+  ],
+  hintsLie:[
+    "Use debate leve.",
+    "Inclua orgulho envolvido.",
+    "Finalize com recuo."
+  ]
+},
+{
+  t:"Já aconteceu de eu perceber que estava sendo educado demais.",
+  hintsTruth:[
+    "Explique o contexto.",
+    "Mostre o exagero.",
+    "Conte o efeito."
+  ],
+  hintsLie:[
+    "Use formalidade excessiva.",
+    "Inclua reação estranha.",
+    "Finalize com ajuste."
+  ]
+},
+{
+  t:"Eu já fiquei sem reação depois de uma resposta inesperada.",
+  hintsTruth:[
+    "Explique o que esperava ouvir.",
+    "Mostre a resposta.",
+    "Conte o silêncio."
+  ],
+  hintsLie:[
+    "Use comentário ousado.",
+    "Inclua pausa dramática.",
+    "Finalize com risada nervosa."
+  ]
+},
+{
+  t:"Uma vez eu tentei ser irônico(a)… e não funcionou.",
+  hintsTruth:[
+    "Explique a ironia.",
+    "Mostre a interpretação errada.",
+    "Conte o constrangimento."
+  ],
+  hintsLie:[
+    "Use tom neutro.",
+    "Inclua confusão.",
+    "Finalize com explicação."
+  ]
+},
+{
+  t:"Já aconteceu de eu responder rápido demais e me arrepender na hora.",
+  hintsTruth:[
+    "Explique o impulso.",
+    "Mostre o arrependimento.",
+    "Conte a correção."
+  ],
+  hintsLie:[
+    "Use resposta automática.",
+    "Inclua silêncio depois.",
+    "Finalize com justificativa."
+  ]
+},
+{
+  t:"Eu já percebi que estava falando só para preencher o silêncio.",
+  hintsTruth:[
+    "Explique o silêncio.",
+    "Mostre a fala aleatória.",
+    "Conte a reação."
+  ],
+  hintsLie:[
+    "Use ambiente desconfortável.",
+    "Inclua comentário inútil.",
+    "Finalize com risada."
+  ]
+},
+{
+  t:"Uma vez eu percebi que estava tentando parecer mais inteligente do que realmente estava.",
+  hintsTruth:[
+    "Explique o tema.",
+    "Mostre o exagero.",
+    "Conte quando parou."
+  ],
+  hintsLie:[
+    "Use palavra complicada.",
+    "Inclua correção alheia.",
+    "Finalize com recuo."
+  ]
+},
+{
+  t:"Já aconteceu de eu perceber que estava enrolando uma resposta.",
+  hintsTruth:[
+    "Explique o motivo.",
+    "Mostre a enrolação.",
+    "Conte o desfecho."
+  ],
+  hintsLie:[
+    "Use resposta longa.",
+    "Inclua pergunta no meio.",
+    "Finalize com conclusão vaga."
+  ]
+},
+{
+  t:"Eu já me vi rindo sozinho(a) de algo que ninguém entendeu.",
+  hintsTruth:[
+    "Explique a piada interna.",
+    "Mostre o isolamento.",
+    "Conte a reação."
+  ],
+  hintsLie:[
+    "Use pensamento aleatório.",
+    "Inclua olhar estranho.",
+    "Finalize com explicação falha."
+  ]
+},
+{
+  t:"Uma vez eu achei que estava sendo discreto(a)… e não estava.",
+  hintsTruth:[
+    "Explique o que tentou esconder.",
+    "Mostre a percepção alheia.",
+    "Conte o constrangimento."
+  ],
+  hintsLie:[
+    "Use movimento chamativo.",
+    "Inclua olhares.",
+    "Finalize com rendição."
+  ]
+},
+{
+  t:"Já aconteceu de eu perceber que estava tentando agradar demais.",
+  hintsTruth:[
+    "Explique o contexto.",
+    "Mostre o esforço.",
+    "Conte o cansaço."
+  ],
+  hintsLie:[
+    "Use elogios excessivos.",
+    "Inclua reação estranha.",
+    "Finalize com ajuste."
+  ]
+},
+{
+  t:"Eu já saí de uma conversa pensando: ‘por que eu disse isso?’",
+  hintsTruth:[
+    "Explique a fala.",
+    "Mostre o arrependimento.",
+    "Conte a reação."
+  ],
+  hintsLie:[
+    "Use comentário espontâneo.",
+    "Inclua silêncio depois.",
+    "Finalize com tentativa de correção."
+  ]
+},
+{
+  t:"Eu já me vi explicando algo completamente absurdo com a maior naturalidade do mundo.",
+  hintsTruth:[
+    "Descreva o absurdo como se fosse rotina.",
+    "Mostre alguém aceitando sem questionar.",
+    "Finalize com você percebendo o quão estranho era."
+  ],
+  hintsLie:[
+    "Escolha algo claramente improvável.",
+    "Fale com tom sério e calmo.",
+    "Inclua alguém concordando sem entender."
+  ]
+},
+{
+  t:"Uma vez eu quase fui levado(a) a sério contando algo que claramente não fazia sentido.",
+  hintsTruth:[
+    "Explique por que começaram a acreditar.",
+    "Mostre sua própria surpresa.",
+    "Finalize com alguém percebendo tarde demais."
+  ],
+  hintsLie:[
+    "Construa a história com lógica interna.",
+    "Inclua detalhes desnecessários.",
+    "Finalize com um silêncio constrangedor."
+  ]
+},
+{
+  t:"Eu já inventei uma história tão absurda que precisei continuar só para não admitir.",
+  hintsTruth:[
+    "Explique o início inocente.",
+    "Mostre o ponto sem retorno.",
+    "Finalize com você preso na própria história."
+  ],
+  hintsLie:[
+    "Comece com algo pequeno.",
+    "Escalone rapidamente.",
+    "Finalize com algo impossível."
+  ]
+},
+{
+  t:"Uma vez eu fui questionado(a) sobre algo que nem eu sabia explicar.",
+  hintsTruth:[
+    "Explique a pergunta inesperada.",
+    "Mostre sua resposta improvisada.",
+    "Finalize com alguém aceitando."
+  ],
+  hintsLie:[
+    "Use termos vagos.",
+    "Inclua palavras difíceis.",
+    "Finalize com aprovação confusa."
+  ]
+},
+{
+  t:"Eu já tentei justificar algo sem nenhuma lógica… e quase funcionou.",
+  hintsTruth:[
+    "Explique o erro inicial.",
+    "Mostre a justificativa estranha.",
+    "Finalize com aceitação parcial."
+  ],
+  hintsLie:[
+    "Use argumentos circulares.",
+    "Inclua confiança extrema.",
+    "Finalize com alguém desistindo de entender."
+  ]
+},
+{
+  t:"Uma vez eu contei algo tão exagerado que ninguém soube se ria ou acreditava.",
+  hintsTruth:[
+    "Mostre o exagero real.",
+    "Descreva as reações mistas.",
+    "Finalize com alguém pedindo detalhes."
+  ],
+  hintsLie:[
+    "Escalone o exagero progressivamente.",
+    "Inclua pausas dramáticas.",
+    "Finalize com reação incrédula."
+  ]
+},
+{
+  t:"Eu já percebi que estava mentindo… mas a história estava boa demais pra parar.",
+  hintsTruth:[
+    "Explique como saiu do controle.",
+    "Mostre sua empolgação.",
+    "Finalize com a história ficando maior que você."
+  ],
+  hintsLie:[
+    "Comece confiante.",
+    "Inclua reviravolta absurda.",
+    "Finalize com algo impossível."
+  ]
+},
+{
+  t:"Uma vez eu fui muito convincente defendendo algo que claramente não existia.",
+  hintsTruth:[
+    "Explique o que era.",
+    "Mostre sua convicção.",
+    "Finalize com alguém pesquisando depois."
+  ],
+  hintsLie:[
+    "Invente algo específico.",
+    "Use nome técnico falso.",
+    "Finalize com dúvida geral."
+  ]
+},
+{
+  t:"Eu já me peguei explicando regras de algo que eu acabei de inventar.",
+  hintsTruth:[
+    "Explique por que inventou.",
+    "Mostre a explicação fluindo.",
+    "Finalize com alguém seguindo as regras."
+  ],
+  hintsLie:[
+    "Crie regras arbitrárias.",
+    "Inclua exceções confusas.",
+    "Finalize com alguém reclamando."
+  ]
+},
+{
+  t:"Uma vez eu contei algo tão improvável que precisei provar com gestos.",
+  hintsTruth:[
+    "Explique o absurdo.",
+    "Mostre os gestos.",
+    "Finalize com reação chocada."
+  ],
+  hintsLie:[
+    "Use gestos exagerados.",
+    "Inclua demonstração física.",
+    "Finalize com gargalhadas."
+  ]
+},
+{
+  t:"Eu já improvisei uma história inteira para justificar algo mínimo.",
+  hintsTruth:[
+    "Explique o detalhe pequeno.",
+    "Mostre a história crescendo.",
+    "Finalize com arrependimento."
+  ],
+  hintsLie:[
+    "Use justificativa simples.",
+    "Escalone sem necessidade.",
+    "Finalize com confusão."
+  ]
+},
+{
+  t:"Uma vez eu quase convenci alguém de algo cientificamente impossível.",
+  hintsTruth:[
+    "Explique a confusão.",
+    "Mostre os argumentos.",
+    "Finalize com correção tardia."
+  ],
+  hintsLie:[
+    "Use palavras científicas.",
+    "Inclua números aleatórios.",
+    "Finalize com dúvida."
+  ]
+},
+{
+  t:"Eu já contei uma versão tão absurda que a original ficou esquecida.",
+  hintsTruth:[
+    "Explique a versão real.",
+    "Mostre a versão absurda.",
+    "Finalize com ninguém lembrando da original."
+  ],
+  hintsLie:[
+    "Crie uma versão alternativa.",
+    "Inclua exageros.",
+    "Finalize com aceitação geral."
+  ]
+},
+{
+  t:"Uma vez eu falei algo tão sério que ninguém percebeu que era brincadeira.",
+  hintsTruth:[
+    "Explique o tom.",
+    "Mostre a reação.",
+    "Finalize com revelação."
+  ],
+  hintsLie:[
+    "Use tom neutro.",
+    "Inclua detalhe absurdo.",
+    "Finalize com choque."
+  ]
+},
+{
+  t:"Eu já tentei sustentar uma história que não parava de piorar.",
+  hintsTruth:[
+    "Explique o ponto inicial.",
+    "Mostre a escalada.",
+    "Finalize com colapso."
+  ],
+  hintsLie:[
+    "Inclua problema atrás de problema.",
+    "Escalone rápido.",
+    "Finalize com algo inaceitável."
+  ]
+},
+{
+  t:"Uma vez eu fui a única pessoa levando algo absurdo a sério.",
+  hintsTruth:[
+    "Explique o absurdo.",
+    "Mostre sua seriedade.",
+    "Finalize com percepção tardia."
+  ],
+  hintsLie:[
+    "Use contexto coletivo.",
+    "Inclua risadas alheias.",
+    "Finalize com constrangimento."
+  ]
+},
+{
+  t:"Eu já consegui deixar uma história impossível… confusa o suficiente para parecer real.",
+  hintsTruth:[
+    "Explique a confusão.",
+    "Mostre a lógica torta.",
+    "Finalize com aceitação."
+  ],
+  hintsLie:[
+    "Misture fatos aleatórios.",
+    "Inclua conexões falsas.",
+    "Finalize com desistência."
+  ]
+},
+{
+  t:"Uma vez eu improvisei tanto que esqueci o que era verdade.",
+  hintsTruth:[
+    "Explique a mistura.",
+    "Mostre sua dúvida.",
+    "Finalize com confissão."
+  ],
+  hintsLie:[
+    "Misture versões.",
+    "Inclua contradições.",
+    "Finalize com silêncio."
+  ]
+},
+{
+  t:"Eu já defendi algo absurdo só porque ninguém me questionou.",
+  hintsTruth:[
+    "Explique a oportunidade.",
+    "Mostre sua confiança.",
+    "Finalize com questionamento tardio."
+  ],
+  hintsLie:[
+    "Use afirmação forte.",
+    "Inclua aprovação geral.",
+    "Finalize com dúvida."
+  ]
+},
+{
+  t:"Uma vez eu transformei algo simples em uma história inacreditável.",
+  hintsTruth:[
+    "Explique o fato simples.",
+    "Mostre a transformação.",
+    "Finalize com reação surpresa."
+  ],
+  hintsLie:[
+    "Use exagero gradual.",
+    "Inclua reviravolta.",
+    "Finalize com incredulidade."
+  ]
+},
+{
+  t:"Eu já percebi que estava mentindo quando comecei a usar exemplos demais.",
+  hintsTruth:[
+    "Explique o excesso.",
+    "Mostre a percepção.",
+    "Finalize com tentativa de conserto."
+  ],
+  hintsLie:[
+    "Inclua muitos exemplos.",
+    "Use comparações estranhas.",
+    "Finalize com confusão."
+  ]
+},
+{
+  t:"Uma vez eu fui tão específico que ninguém acreditou.",
+  hintsTruth:[
+    "Explique os detalhes.",
+    "Mostre a reação desconfiada.",
+    "Finalize com frustração."
+  ],
+  hintsLie:[
+    "Use detalhes inúteis.",
+    "Inclua datas e números.",
+    "Finalize com descrédito."
+  ]
+},
+{
+  t:"Eu já contei algo absurdo e percebi que o problema não era a história… era eu.",
+  hintsTruth:[
+    "Explique sua atuação.",
+    "Mostre a reação.",
+    "Finalize com autocrítica."
+  ],
+  hintsLie:[
+    "Atue demais.",
+    "Inclua gestos exagerados.",
+    "Finalize com risadas."
+  ]
+},
+{
+  t:"Uma vez eu improvisei uma explicação tão maluca que ninguém quis continuar o assunto.",
+  hintsTruth:[
+    "Explique a explicação.",
+    "Mostre o silêncio.",
+    "Finalize com mudança de assunto."
+  ],
+  hintsLie:[
+    "Inclua lógica impossível.",
+    "Use palavras inventadas.",
+    "Finalize com fuga geral."
+  ]
+},
+{
+  t:"Eu já fui tão longe numa história que desistiram de me interromper.",
+  hintsTruth:[
+    "Explique a insistência.",
+    "Mostre o cansaço alheio.",
+    "Finalize com encerramento forçado."
+  ],
+  hintsLie:[
+    "Fale rápido.",
+    "Inclua reviravoltas.",
+    "Finalize sem conclusão."
+  ]
+},
+{
+  t:"Uma vez eu percebi que ninguém estava entendendo… mas continuei mesmo assim.",
+  hintsTruth:[
+    "Explique por que continuou.",
+    "Mostre as reações.",
+    "Finalize com confissão."
+  ],
+  hintsLie:[
+    "Use termos confusos.",
+    "Inclua olhares perdidos.",
+    "Finalize com silêncio."
+  ]
+},
+{
+  t:"Eu já contei algo tão absurdo que só funcionou porque eu acreditei primeiro.",
+  hintsTruth:[
+    "Explique sua convicção.",
+    "Mostre a reação.",
+    "Finalize com descrença."
+  ],
+  hintsLie:[
+    "Atue com convicção total.",
+    "Inclua frases definitivas.",
+    "Finalize com choque."
+  ]
+},
+{
+  t:"Uma vez eu transformei uma mentira em algo tão elaborado que virou quase um roteiro.",
+  hintsTruth:[
+    "Explique a elaboração.",
+    "Mostre os atos.",
+    "Finalize com cansaço."
+  ],
+  hintsLie:[
+    "Divida em etapas.",
+    "Inclua personagens.",
+    "Finalize com cliffhanger."
+  ]
+},
+{
+  t:"Eu já percebi que uma história absurda pode ser mais convincente que uma simples.",
+  hintsTruth:[
+    "Explique o contraste.",
+    "Mostre a reação.",
+    "Finalize com surpresa."
+  ],
+  hintsLie:[
+    "Faça o absurdo soar lógico.",
+    "Inclua justificativas.",
+    "Finalize com aceitação."
+  ]
+}
+];  
+
+/* ===== STATE ===== */
+let players = [];
+let deck = [];
+let cur = 0;
+
+let currentCard = null;
+let narratorTruth = null;
+
+let storyTimer = 60;
+let storyInt = null;
+
+let voteOrder = [];
+let votePos = 0;
+let votes = []; // {name, vote}
+
+/* ===== NAV ===== */
+function show(id){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
+
+/* ===== PLAYERS ===== */
+function addPlayer(){
+  const inp = document.getElementById("in-name");
+  if(!inp.value.trim()) return;
+  players.push({name: inp.value.toUpperCase(), score: 0});
+  inp.value="";
+  inp.focus();
+  renderPlayers();
+}
+function removePlayer(i){
+  players.splice(i,1);
+  renderPlayers();
+}
+function renderPlayers(){
+  const d = document.getElementById("player-list");
+  d.innerHTML = "";
+  players.forEach((p,i)=>{
+    const div=document.createElement("div");
+    div.className="player";
+    div.innerHTML = `<span>${p.name}</span>
+      <button class="btn-danger" onclick="removePlayer(${i})">X</button>`;
+    d.appendChild(div);
+  });
+}
+
+/* ===== START ===== */
+function startGame(){
+  if(players.length < 2){
+    openAlert();
+    return;
+  }
+  deck = [...cards].sort(()=>Math.random()-0.5);
+  cur = 0;
+  updateLobby();
+  show("scr-lobby");
+}
+function updateLobby(){
+  document.getElementById("lb-name").innerText = players[cur].name;
+  document.getElementById("lb-score").innerText = players[cur].score;
+}
+
+/* ===== RULES MODAL ===== */
+function openRules(){ document.getElementById("modal-rules").style.display="flex"; }
+function closeRules(){ document.getElementById("modal-rules").style.display="none"; }
+function openAlert(){ document.getElementById("modal-alert").style.display="flex"; }
+function closeAlert(){ document.getElementById("modal-alert").style.display="none"; }
+
+/* ===== SCORE MODAL (com lápis/edição) ===== */
+let scoreEditMode = false;
+
+function openScore(){
+  // sempre abre com modo edição DESLIGADO (igual ao Nem Pensar)
+  scoreEditMode = false;
+  const btn = document.getElementById("btnScoreEdit");
+  if(btn) btn.innerText = "✏️ AJUSTAR PONTUAÇÃO";
+  renderScore();
+  document.getElementById("modal-score").style.display="flex";
+}
+function closeScore(){
+  // ao voltar, desliga o modo edição para não “ficar ativo”
+  scoreEditMode = false;
+  const btn = document.getElementById("btnScoreEdit");
+  if(btn) btn.innerText = "✏️ AJUSTAR PONTUAÇÃO";
+  document.getElementById("modal-score").style.display="none";
+  // se estiver no lobby, atualiza a pontuação exibida do narrador da vez
+  if(typeof updateLobby === "function") updateLobby();
+}
+function toggleScoreEdit(){
+  scoreEditMode = !scoreEditMode;
+  const btn = document.getElementById("btnScoreEdit");
+  btn.innerText = scoreEditMode ? "✅ AJUSTE ATIVO" : "✏️ AJUSTAR PONTUAÇÃO";
+  renderScore();
+}
+function renderScore(){
+  const body = document.getElementById("score-body");
+
+  const ranked = players
+    .map((p, originalIndex)=>({name:p.name, score:p.score, originalIndex}))
+    .sort((a,b)=>b.score - a.score);
+
+  body.innerHTML = ranked.map((p, rank)=>{
+    const editControls = scoreEditMode
+      ? `
+        <button class="score-btn score-btn-minus" onclick="scoreDelta(${p.originalIndex}, -1)">−</button>
+        <button class="score-btn score-btn-plus"  onclick="scoreDelta(${p.originalIndex}, +1)">+</button>
+      `
+      : "";
+
+    return `
+      <div class="score-item">
+        <div class="score-left">
+          <div class="rank-badge">${rank+1}</div>
+          <div class="score-name">${p.name}</div>
+        </div>
+        <div class="score-right">
+          <div class="score-pts">${p.score} PTS</div>
+          ${editControls}
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+function scoreDelta(playerIndex, delta){
+  if(!players[playerIndex]) return;
+  players[playerIndex].score = Math.max(0, (players[playerIndex].score||0) + delta);
+  renderScore();
+  updateLobby();
+}
+
+/* ===== LOBBY -> STORY ===== */
+function revealCard(){
+  if(deck.length===0){
+    // acabou (por enquanto demo)
+    openModalInfo("FIM DAS CARTAS","As cartas de teste acabaram.");
+    return;
+  }
+  currentCard = deck.shift();
+  narratorTruth = null;
+
+  document.getElementById("st-name").innerText = players[cur].name;
+  document.getElementById("st-text").innerText = currentCard.t;
+
+  // reset UI de escolha
+  document.getElementById("choiceBox").style.display="flex";
+  document.getElementById("afterChoice").style.display="none";
+
+  show("scr-story");
+}
+
+function backToLobby(){
+  updateLobby();
+  show("scr-lobby");
+}
+
+/* ===== CHOICE + DICAS ===== */
+function chooseTruth(isTruth){
+  narratorTruth = !!isTruth;
+  document.getElementById("choiceBox").style.display="none";
+  document.getElementById("afterChoice").style.display="block";
+}
+function openHints(){
+  if(!currentCard || narratorTruth===null) return;
+
+  const mode = narratorTruth ? "VERDADE" : "MENTIRA";
+  const hints = narratorTruth ? currentCard.hintsTruth : currentCard.hintsLie;
+
+  document.getElementById("hintsTitle").innerText = "Use isso como inspiração (nível médio)";
+  document.getElementById("hintsMode").innerText = "MODO: " + mode;
+  document.getElementById("hintsBody").innerHTML = hints.map(h=>`• ${h}`).join("<br><br>");
+
+  document.getElementById("modal-hints").style.display="flex";
+}
+function closeHints(){
+  document.getElementById("modal-hints").style.display="none";
+}
+
+/* ===== TIMER ===== */
+function startStory(){
+  if(narratorTruth===null) return;
+
+  storyTimer = 60;
+  document.getElementById("tm-name").innerText = players[cur].name;
+  document.getElementById("timerText").innerText = storyTimer+"s";
+
+  clearInterval(storyInt);
+  storyInt = setInterval(()=>{
+    storyTimer--;
+    if(storyTimer < 0) storyTimer = 0;
+    document.getElementById("timerText").innerText = storyTimer+"s";
+    if(storyTimer<=0){
+      clearInterval(storyInt);
+    }
+  },1000);
+
+  show("scr-timer");
+}
+
+/* ===== VOTING ===== */
+function startVoting(){
+  clearInterval(storyInt);
+
+  // ordem de voto: todos exceto narrador
+  voteOrder = players.map((p,i)=>i).filter(i=>i!==cur);
+  votePos = 0;
+  votes = [];
+
+  if(voteOrder.length===0){
+    openModalInfo("SEM VOTANTES","Você precisa de pelo menos 2 jogadores.");
+    backToLobby();
+    return;
+  }
+
+  updateVoteUI();
+  show("scr-vote");
+}
+
+function updateVoteUI(){
+  const voterIndex = voteOrder[votePos];
+  document.getElementById("vt-name").innerText = players[voterIndex].name;
+
+  document.getElementById("voteLabel").innerText = "VOTO: " + players[voterIndex].name;
+  document.getElementById("voteProgress").innerText = (votePos) + "/" + voteOrder.length;
+}
+
+function castVote(isTruth){
+  const voterIndex = voteOrder[votePos];
+  votes.push({ name: players[voterIndex].name, vote: !!isTruth });
+
+  votePos++;
+  if(votePos >= voteOrder.length){
+    finishVoting();
+    return;
+  }
+
+  updateVoteUI();
+}
+
+/* ===== RESULT + SCORING ===== */
+function finishVoting(){
+  const narratorName = players[cur].name;
+
+  const acertou = votes.filter(v=>v.vote===narratorTruth).map(v=>v.name);
+  const errou   = votes.filter(v=>v.vote!==narratorTruth).map(v=>v.name);
+
+  // pontuação:
+  // - cada jogador que ACERTAR ganha +1
+  // - cada jogador que ERRAR dá +1 ao narrador
+  acertou.forEach(name=>{
+    const idx = players.findIndex(p=>p.name===name);
+    if(idx>=0) players[idx].score = (players[idx].score || 0) + 1;
+  });
+
+  const pointsForNarrator = errou.length;
+  players[cur].score = (players[cur].score || 0) + pointsForNarrator;
+
+  // UI
+  document.getElementById("rs-title").innerText = "NARRADOR: " + narratorName;
+  document.getElementById("rs-truth").innerText = narratorTruth ? "ERA VERDADE" : "ERA MENTIRA";
+
+  document.getElementById("rs-okCount").innerText = acertou.length;
+  document.getElementById("rs-badCount").innerText = errou.length;
+
+  document.getElementById("rs-okList").innerText = acertou.length ? acertou.join(", ") : "—";
+  document.getElementById("rs-badList").innerText = errou.length ? errou.join(", ") : "—";
+
+  document.getElementById("rs-narratorName").innerText = narratorName;
+  document.getElementById("rs-narratorPts").innerText = "+" + pointsForNarrator;
+
+  show("scr-result");
+}
+
+/* ===== NEXT ROUND ===== */
+function nextRound(){
+  // próximo narrador
+  cur = (cur + 1) % players.length;
+  updateLobby();
+  show("scr-lobby");
+}
+
+/* ===== INFO MODAL (simples, reaproveitando alert style) ===== */
+function openModalInfo(title, text){
+  // usa o modal-alert como base sem mexer no layout global
+  document.querySelector("#modal-alert .modal-title").innerText = title;
+  document.querySelector("#modal-alert .modal-text").innerText = text;
+  document.getElementById("modal-alert").style.display="flex";
+}
+</script>
+</body>
+</html>
